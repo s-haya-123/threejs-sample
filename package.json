@@ -4,12 +4,15 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server --inline"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^1.2.9"
+    "@tensorflow/tfjs": "^1.2.9",
+    "@tensorflow/tfjs-node": "^1.2.9"
   },
   "devDependencies": {
+    "ts-loader": "^6.1.0",
+    "typescript": "^3.6.3",
     "webpack": "^4.40.2",
     "webpack-cli": "^3.3.8",
     "webpack-dev-server": "^3.8.0"
