@@ -1,22 +1,28 @@
 import * as tf from '@tensorflow/tfjs';
-import { LayersModel } from '@tensorflow/tfjs';
 
-console.log('start');
-tf.loadLayersModel('../model/classifyIllust/model.json').then(m => {
-    let img = document.getElementById('img') as HTMLImageElement;
-    if( !img) {
+function loadImg(id: string): tf.Tensor<tf.Rank> | undefined {
+    let img = document.getElementById(id) as HTMLImageElement;
+    if( !img ) {
         return;
     }
-    console.log('load');
     const resizeImg = tf.image.resizeBilinear(tf.browser.fromPixels(img,3),[224,224]);
-    const batched = tf.tidy(() => {
+    return tf.tidy(() => {
         return resizeImg.expandDims(0);
       }).cast('float32').div(tf.scalar(255));
-    // const batched = tf.browser.fromPixels(img,1)
-    console.log('result');
-    // const reshapeImg = resizeImg.reshape([1,244,244,3])
-    const predict = m.predict(batched) as any;
-    predict.print();
+}
+
+console.log('start');
+tf.loadLayersModel('../model/classifyIllust/model.json').then(m => {    
+    const batched = loadImg('img');
+    const batched2 = loadImg('img2');
+    if( !!batched && !!batched2) {
+        console.log(batched);
+        console.log('result');
+        const batchImg = batched.concat(batched2);
+        (m.predict(batchImg) as any).print();
+        // !!batched ? (m.predict(batched) as any).print():{};
+        // !!batched2 ? (m.predict(batched2) as any).print():{};
+    }
 },
 (e)=>{
     console.log(e);

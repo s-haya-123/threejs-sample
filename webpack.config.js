@@ -1,4 +1,5 @@
 const path = require('path');
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = ( env, argv ) => ({
   mode: "development",
@@ -21,8 +22,11 @@ module.exports = ( env, argv ) => ({
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist')
   },
-  devServer: {
-    contentBase: path.resolve(__dirname, ''),
-    watchContentBase: true,
-  }
+  // devServer: {
+  //   contentBase: path.resolve(__dirname, ''),
+  //   watchContentBase: true,
+  //   inline: true,
+  //   hot: true,
+  // }
+  plugins: [new HtmlWebpackPlugin({ template: "./index.html" })]
 });
