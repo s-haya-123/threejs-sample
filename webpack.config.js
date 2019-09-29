@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const WorkerLoader = require("worker-plugin");
 
 module.exports = ( env, argv ) => ({
   mode: "development",
@@ -28,5 +29,5 @@ module.exports = ( env, argv ) => ({
   //   inline: true,
   //   hot: true,
   // }
-  plugins: [new HtmlWebpackPlugin({ template: "./index.html" })]
+  plugins: [new HtmlWebpackPlugin({ template: "./index.html" }),new WorkerLoader()]
 });
