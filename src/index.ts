@@ -1,5 +1,6 @@
 import * as comlink from 'comlink';
 import * as THREE from 'three';
+// const THREE = require('../dist/three.module.js');
 import { ARButton } from 'three/examples/jsm/webxr/ARButton';
 
 const camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.01, 10 );
@@ -10,8 +11,6 @@ const scene = new THREE.Scene();
 const geometry = new THREE.BoxGeometry( 0.2, 0.2, 0.2 );
 const material = new THREE.MeshNormalMaterial();
 
-const mesh = new THREE.Mesh( geometry, material );
-scene.add( mesh );
 
 const renderer = new THREE.WebGLRenderer( { antialias: true , alpha: true } );
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -21,18 +20,60 @@ document.body.appendChild( renderer.domElement );
 document.body.appendChild(ARButton.createButton(renderer))
 const controller = renderer.vr.getController( 0 );
 scene.add( controller );
+const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+light.position.set(0, 1, 0);
+scene.add(light);
+
+const rectMesh = new THREE.Mesh( geometry, material );
+scene.add( rectMesh );
 controller.addEventListener( 'selectstart', onSelectStart );
-// controller.addEventListener( 'selectend', onSelectEnd );
+controller.addEventListener( 'selectend', onSelectEnd );
 function onSelectStart() {
     console.log('start');
     animate();
 }
-// animate();
-function animate(){
-    requestAnimationFrame( animate );
+function onSelectEnd() {
+    controller.userData.isSelecting = true;
+}
+function makeArrow(color: number) {
+    const geometry = new THREE.ConeGeometry(0.03, 0.1, 32)
+    const material = new THREE.MeshStandardMaterial({
+      color: color,
+      roughness: 0.9,
+      metalness: 0.0,
+      side: THREE.DoubleSide
+    });
+    const localMesh = new THREE.Mesh(geometry, material);
+    localMesh.rotation.x = -Math.PI / 2
+    const mesh = new THREE.Group()
+    mesh.add(localMesh)
+    return mesh
+  }
+function handleController(controller:THREE.Group) {
+    console.log(controller.position)
+    // if (!controller.userData.isSelecting) return;
 
-    mesh.rotation.x += 0.01;
-    mesh.rotation.y += 0.02;
-    
+    // rectMesh.rotation.x += 0.01;
+    // rectMesh .rotation.y += 0.02;
+
+    // const mesh = makeArrow(Math.floor(Math.random() * 0xffffff))
+
+    // 5. コントローラーのposition, rotationプロパティを使用して
+    //    AR空間内での端末の姿勢を取得し、メッシュに適用する
+    rectMesh.position.copy(controller.position)
+    rectMesh.rotation.copy(controller.rotation)
+
+    // scene.add(mesh)
+
+    // controller.userData.isSelecting = false
+}
+function animate(){
+    renderer.setAnimationLoop(render);
+}
+function render(){
+    handleController(controller);
+
+    rectMesh.rotation.x += 0.01;
+    rectMesh .rotation.y += 0.02;
     renderer.render( scene, camera );
 }
