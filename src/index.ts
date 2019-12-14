@@ -8,7 +8,7 @@ camera.position.z = 1;
 
 const scene = new THREE.Scene();
 
-const geometry = new THREE.BoxGeometry( 0.2, 0.2, 0.2 );
+const geometry = new THREE.BoxGeometry( 0.1, 0.1, 0.1 );
 const material = new THREE.MeshNormalMaterial();
 
 
@@ -50,8 +50,14 @@ function makeArrow(color: number) {
     return mesh
   }
 function handleController(controller:THREE.Group) {
+    // rectMesh.position.set( 0,0,-0.4).applyMatrix4( controller.matrixWorld);
+    // console.log(controller)
+    // controller.updateMatrix();
+    // console.log(controller.position)
+    if (!controller.userData.isSelecting) return;
     console.log(controller.position)
-    // if (!controller.userData.isSelecting) return;
+    console.log(controller)
+    // rectMesh.position.set(-0.04872144013643265, -0.043070945888757706, 0.06206323951482773);
 
     // rectMesh.rotation.x += 0.01;
     // rectMesh .rotation.y += 0.02;
@@ -60,20 +66,25 @@ function handleController(controller:THREE.Group) {
 
     // 5. コントローラーのposition, rotationプロパティを使用して
     //    AR空間内での端末の姿勢を取得し、メッシュに適用する
-    rectMesh.position.copy(controller.position)
-    rectMesh.rotation.copy(controller.rotation)
+    // rectMesh.position.copy(controller.position)
+    // rectMesh.rotation.copy(controller.rotation)
 
     // scene.add(mesh)
 
-    // controller.userData.isSelecting = false
+    controller.userData.isSelecting = false
 }
 function animate(){
     renderer.setAnimationLoop(render);
 }
 function render(){
     handleController(controller);
+    // console.log(controller);
+    rectMesh.position.set( 0,0,-0.4).applyMatrix4( controller.matrixWorld);
 
     rectMesh.rotation.x += 0.01;
-    rectMesh .rotation.y += 0.02;
+    rectMesh.rotation.y += 0.02;
+
+    // rectMesh.position.x += 0.01;
+
     renderer.render( scene, camera );
 }

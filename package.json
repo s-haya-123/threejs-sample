@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^1.2.9",
-    "@tensorflow/tfjs-node": "^1.2.9"
+    "@tensorflow/tfjs-node": "^1.2.9",
+    "handtrackjs": "^0.0.13"
   },
   "devDependencies": {
     "comlink": "^4.0.2",
