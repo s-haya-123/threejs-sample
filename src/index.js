@@ -7,10 +7,37 @@ const modelParams = {
     scoreThreshold: 0.6, // confidence threshold for predictions.
 }
 
+export function startVideo(video) {
+    // Video must have height and width in order to be used as input for NN
+    // Aspect ratio of 3/4 is used to support safari browser.
+    video.width = video.width || 640;
+    video.height = video.height || video.width * (3 / 4)
+  
+    return new Promise(function (resolve, reject) {
+      navigator.mediaDevices
+        .getUserMedia({
+          audio: false,
+          video: {
+            facingMode: "environment"
+          }
+        })
+        .then(stream => {
+          window.localStream = stream;
+          video.srcObject = stream
+          video.onloadedmetadata = () => {
+            video.play()
+            resolve(true)
+          }
+        }).catch(function (err) {
+          resolve(false)
+        });
+    });
+  
+  }
 async function start() {
     const model = await handTrack.load(modelParams);
     const video = document.getElementById("myvideo");    
-    const status = await handTrack.startVideo(video)
+    const status = await startVideo(video)
     console.log(status);
     if(status){
         runDetect(model,video);
