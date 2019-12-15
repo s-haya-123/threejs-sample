@@ -1,4 +1,7 @@
 import * as handTrack from 'handtrackjs';
+import * as THREE from 'three';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 // import * as THREE from 'three';
 
 
@@ -37,8 +40,9 @@ export function startVideo(video) {
   
   }
 async function start() {
+    console.log('detect-hand start');
     const model = await handTrack.load(modelParams);
-    const video = document.getElementById("myvideo");    
+    const video = document.getElementById("arjs-video");    
     const status = await startVideo(video)
     console.log(status);
     if(status){
@@ -72,6 +76,9 @@ var scene	= new THREE.Scene();
 // Create a camera
 var camera = new THREE.Camera();
 scene.add(camera);
+const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+light.position.set(0, 1, 0);
+scene.add(light);
 ////////////////////////////////////////////////////////////////////////////////
 //          handle arToolkitSource
 ////////////////////////////////////////////////////////////////////////////////
@@ -99,9 +106,7 @@ function onResize(){
         arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas)
     }
 }
-////////////////////////////////////////////////////////////////////////////////
-//          initialize arToolkitContext
-////////////////////////////////////////////////////////////////////////////////
+
 // create atToolkitContext
 var arToolkitContext = new THREEx.ArToolkitContext({
     cameraParametersUrl: THREEx.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
@@ -119,9 +124,7 @@ onRenderFcts.push(function(){
     // update scene.visible if the marker is seen
     scene.visible = camera.visible
 })
-////////////////////////////////////////////////////////////////////////////////
-//          Create a ArMarkerControls
-////////////////////////////////////////////////////////////////////////////////
+
 // init controls for camera
 var markerControls = new THREEx.ArMarkerControls(arToolkitContext, camera, {
     type : 'pattern',
@@ -132,9 +135,7 @@ var markerControls = new THREEx.ArMarkerControls(arToolkitContext, camera, {
 })
 // as we do changeMatrixMode: 'cameraTransformMatrix', start with invisible scene
 scene.visible = false
-//////////////////////////////////////////////////////////////////////////////////
-//		add an object in the scene
-//////////////////////////////////////////////////////////////////////////////////
+
 // add a torus knot
 var geometry	= new THREE.CubeGeometry(1,1,1);
 var material	= new THREE.MeshNormalMaterial({
@@ -142,20 +143,31 @@ var material	= new THREE.MeshNormalMaterial({
     opacity: 0.5,
     side: THREE.DoubleSide
 });
-var mesh	= new THREE.Mesh( geometry, material );
-mesh.position.y	= geometry.parameters.height/2
-scene.add( mesh );
-var geometry	= new THREE.TorusKnotGeometry(0.3,0.1,64,16);
-var material	= new THREE.MeshNormalMaterial();
-var mesh	= new THREE.Mesh( geometry, material );
-mesh.position.y	= 0.5
-scene.add( mesh );
-onRenderFcts.push(function(delta){
-    mesh.rotation.x += Math.PI*delta
-})
-//////////////////////////////////////////////////////////////////////////////////
-//		render the whole thing on the page
-//////////////////////////////////////////////////////////////////////////////////
+// var mesh	= new THREE.Mesh( geometry, material );
+// mesh.position.y	= geometry.parameters.height/2
+// scene.add( mesh );
+// var geometry	= new THREE.TorusKnotGeometry(0.3,0.1,64,16);
+// var material	= new THREE.MeshNormalMaterial();
+// var mesh	= new THREE.Mesh( geometry, material );
+// mesh.position.y	= 0.5
+// scene.add( mesh );
+let loader = new OBJLoader();
+loader.load('../dist/Sword.obj',
+(group)=>{
+    group.name = "sword"
+    console.log(group);
+    
+    group.position.set(0,0,0);
+    group.scale.set(0.01,0.01,0.01);
+    // const material	= new THREE.MeshNormalMaterial();
+    // const mesh = THREE.Mesh(group, material);
+    scene.add(group);
+});
+// onRenderFcts.push(function(delta){
+//     mesh.rotation.x += Math.PI*delta;
+//     mesh.rotation.y += Math.PI*delta;
+// })
+
 // render the scene
 onRenderFcts.push(function(){
     renderer.render( scene, camera );
@@ -165,6 +177,7 @@ var lastTimeMsec= null
 requestAnimationFrame(function animate(nowMsec){
     // keep looping
     requestAnimationFrame( animate );
+
     // measure time
     lastTimeMsec	= lastTimeMsec || nowMsec-1000/60
     var deltaMsec	= Math.min(200, nowMsec - lastTimeMsec)
@@ -175,4 +188,4 @@ requestAnimationFrame(function animate(nowMsec){
     })
 })
 
-// start();
+// setTimeout(start,1000);
