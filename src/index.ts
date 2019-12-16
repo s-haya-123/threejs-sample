@@ -2,6 +2,7 @@ import * as comlink from 'comlink';
 import * as THREE from 'three';
 // const THREE = require('../dist/three.module.js');
 import { ARButton } from 'three/examples/jsm/webxr/ARButton';
+// import {render} from './objsample';
 
 const camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.01, 10 );
 camera.position.z = 1;
@@ -88,3 +89,5 @@ function render(){
 
     renderer.render( scene, camera );
 }
+
+// render();
