@@ -152,7 +152,7 @@ var material	= new THREE.MeshNormalMaterial({
 // mesh.position.y	= 0.5
 // scene.add( mesh );
 let loader = new OBJLoader();
-loader.load('../dist/Sword.obj',
+loader.load('../assets/Sword.obj',
 (group)=>{
     group.name = "sword"
     console.log(group);
