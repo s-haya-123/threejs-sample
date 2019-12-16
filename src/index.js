@@ -44,7 +44,6 @@ async function start() {
     const model = await handTrack.load(modelParams);
     const video = document.getElementById("arjs-video");    
     const status = await startVideo(video)
-    console.log(status);
     if(status){
         runDetect(model,video);
     }
@@ -74,7 +73,9 @@ var scene	= new THREE.Scene();
 //		Initialize a basic camera
 //////////////////////////////////////////////////////////////////////////////////
 // Create a camera
-var camera = new THREE.Camera();
+var camera = new THREE.PerspectiveCamera(60, document.body.offsetWidth / document.body.offset, 1, 10);
+// camera.position.set( );
+camera.position.z = 3;
 scene.add(camera);
 const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
 light.position.set(0, 1, 0);
@@ -124,49 +125,51 @@ onRenderFcts.push(function(){
     // update scene.visible if the marker is seen
     scene.visible = camera.visible
 })
-
+const makerRoot = new THREE.Group();
+scene.add(makerRoot);
 // init controls for camera
-var markerControls = new THREEx.ArMarkerControls(arToolkitContext, camera, {
+var markerControls = new THREEx.ArMarkerControls(arToolkitContext, makerRoot, {
     type : 'pattern',
     patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
     // patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
     // as we controls the camera, set changeMatrixMode: 'cameraTransformMatrix'
-    changeMatrixMode: 'cameraTransformMatrix'
+    // changeMatrixMode: 'cameraTransformMatrix'
 })
 // as we do changeMatrixMode: 'cameraTransformMatrix', start with invisible scene
 scene.visible = false
 
 // add a torus knot
-var geometry	= new THREE.CubeGeometry(1,1,1);
+var geometry	= new THREE.CubeGeometry(2,1,1);
 var material	= new THREE.MeshNormalMaterial({
     transparent : true,
     opacity: 0.5,
-    side: THREE.DoubleSide
+    // side: THREE.DoubleSide
 });
-var mesh	= new THREE.Mesh( geometry, material );
-mesh.position.y	= geometry.parameters.height/2
+var mesh = new THREE.Mesh( geometry, material );
+mesh.position.set(0,0,0);
+// mesh.scale.set(0.1,0.1,0.1);
 scene.add( mesh );
-var geometry	= new THREE.TorusKnotGeometry(0.3,0.1,64,16);
-var material	= new THREE.MeshNormalMaterial();
-var mesh	= new THREE.Mesh( geometry, material );
-mesh.position.y	= 0.5
-scene.add( mesh );
+// const project = mesh.position.project(camera)
+// console.log(window.innerWidth / 2 * (+project.x + 1.0), window.innerHeight / 2 * (-project.y + 1.0) )
+
+// mesh.position.set(-2.4226338863372803, -0.19854499399662018, -7.350611209869385)
+// var geometry	= new THREE.TorusKnotGeometry(0.3,0.1,64,16);
+// var material	= new THREE.MeshNormalMaterial();
+// var mesh	= new THREE.Mesh( geometry, material );
+// mesh.position.y	= 0.5
+// makerRoot.add( mesh );
 let loader = new OBJLoader();
 loader.load('../assets/Sword.obj',
 (group)=>{
     group.name = "sword"
-    console.log(group);
-    
     group.position.set(0,0,0);
-    group.scale.set(0.01,0.01,0.01);
-    // const material	= new THREE.MeshNormalMaterial();
-    // const mesh = THREE.Mesh(group, material);
-    scene.add(group);
+    group.scale.set(0.03,0.03,0.03);
+    makerRoot.add(group);
 });
-onRenderFcts.push(function(delta){
-    mesh.rotation.x += Math.PI*delta;
-    mesh.rotation.y += Math.PI*delta;
-})
+// onRenderFcts.push(function(delta){
+//     mesh.rotation.x += Math.PI*delta;
+//     mesh.rotation.y += Math.PI*delta;
+// })
 
 // render the scene
 onRenderFcts.push(function(){
@@ -184,8 +187,8 @@ requestAnimationFrame(function animate(nowMsec){
     lastTimeMsec	= nowMsec
     // call each update function
     onRenderFcts.forEach(function(onRenderFct){
-        onRenderFct(deltaMsec/1000, nowMsec/1000)
+        onRenderFct(deltaMsec/10000, nowMsec/10000)
     })
 })
 
-// setTimeout(start,1000);
+// setTimeout(start,100);
