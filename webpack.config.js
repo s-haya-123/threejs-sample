@@ -4,7 +4,7 @@ const WorkerLoader = require("worker-plugin");
 
 module.exports = ( env, argv ) => ({
   mode: "development",
-  entry: './src/index.ts',
+  entry: './src/index.js',
   module: {
     rules: [
       {
