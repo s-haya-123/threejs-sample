@@ -99,6 +99,7 @@ onRenderFcts.push(function(){
 const makerRoot = new THREE.Group();
 scene.add(makerRoot);
 fire.position.set(0,0,0);
+fire.scale.set(0.5,0.5,0.5)
 
 params.Single();
 updateAll();
@@ -107,19 +108,23 @@ var markerControls = new THREEx.ArMarkerControls(arToolkitContext, makerRoot, {
     type : 'pattern',
     patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro'
 })
-
+const geometry = new THREE.CubeGeometry(2.5,2.5,2.5);
+const material = new THREE.MeshNormalMaterial();
+const mesh = new THREE.Mesh( geometry, material );
 scene.visible = false
 
-makerRoot.add( fire );
 fire.visible = false;
 
 let loader = new OBJLoader();
-loader.load('./Sword.obj',
+loader.load('Sword.obj',
 (group)=>{
     group.name = "sword"
-    group.position.set(0,0,0);
+    group.position.set(-3,6,0);
     group.scale.set(0.03,0.03,0.03);
+    group.rotation.z += 0.5; 
+    makerRoot.add( mesh );
     makerRoot.add(group);
+    makerRoot.add( fire );
 });
 
 onRenderFcts.push(function(){
@@ -137,7 +142,7 @@ requestAnimationFrame(function animate(nowMsec){
     })
 })
 
-setTimeout(start,1000);
+setTimeout(start,2000);
 
 export function startVideo(video) {
     video.width = video.width || 640;
@@ -176,7 +181,8 @@ async function start() {
 async function runDetect(model, video, prevCount) {
     const predictions = await model.detect(video);
     const count = predictions.length > 0 ? prevCount + 1 : prevCount;
-    if(count > 6) {
+    if(count > 4) {
+        mesh.visible = false;
         fire.visible = true;
     }
     setTimeout(()=>{runDetect(model, video, count)}, 500);
