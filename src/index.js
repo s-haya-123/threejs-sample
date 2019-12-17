@@ -185,6 +185,7 @@ var mesh = new THREE.Mesh( geometry, material );
 mesh.position.set(0,0,0);
 // mesh.scale.set(0.1,0.1,0.1);
 scene.add( mesh );
+makerRoot.add( fire );
 // const project = mesh.position.project(camera)
 // console.log(window.innerWidth / 2 * (+project.x + 1.0), window.innerHeight / 2 * (-project.y + 1.0) )
 
@@ -201,13 +202,20 @@ loader.load('../dist/Sword.obj',
     group.position.set(0,0,0);
     group.scale.set(0.03,0.03,0.03);
     makerRoot.add(group);
-    makerRoot.add( fire );
 });
-// onRenderFcts.push(function(delta){
-//     mesh.rotation.x += Math.PI*delta;
-//     mesh.rotation.y += Math.PI*delta;
-// })
-
+let total = 0;
+onRenderFcts.push(function(delta){
+    total += delta;
+    console.log(total);
+    if(total > 1) {
+        console.log(total);
+        mesh.visible = false;
+    }
+    if(total > 1.5) {
+        mesh.visible = true;
+        total = 0;
+    }
+})
 // render the scene
 onRenderFcts.push(function(){
     renderer.render( scene, camera );
