@@ -2,59 +2,15 @@ import * as handTrack from 'handtrackjs';
 import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { Fire } from 'three/examples/jsm/objects/Fire.js';
-// import * as THREE from 'three';
 
 
 const modelParams = {
     flipHorizontal: true, // flip e.g for video  
     maxNumBoxes: 1, // maximum number of boxes to detect
     iouThreshold: 0.5, // ioU threshold for non-max suppression
-    scoreThreshold: 0.6, // confidence threshold for predictions.
+    scoreThreshold: 0.6,
 }
 
-export function startVideo(video) {
-    // Video must have height and width in order to be used as input for NN
-    // Aspect ratio of 3/4 is used to support safari browser.
-    video.width = video.width || 640;
-    video.height = video.height || video.width * (3 / 4)
-  
-    return new Promise(function (resolve, reject) {
-      navigator.mediaDevices
-        .getUserMedia({
-          audio: false,
-          video: {
-            facingMode: "environment"
-          }
-        })
-        .then(stream => {
-          window.localStream = stream;
-          video.srcObject = stream
-          video.onloadedmetadata = () => {
-            video.play()
-            resolve(true)
-          }
-        }).catch(function (err) {
-          resolve(false)
-        });
-    });
-  
-  }
-async function start() {
-    console.log('detect-hand start');
-    const model = await handTrack.load(modelParams);
-    const video = document.getElementById("arjs-video");    
-    const status = await startVideo(video)
-    if(status){
-        runDetect(model,video);
-    }
-}
-async function runDetect(model, video) {
-    const predictions = await model.detect(video);
-    console.log(predictions);
-    setTimeout(()=>{runDetect(model, video)}, 100);
-}
-
-// init renderer
 var renderer	= new THREE.WebGLRenderer({
     antialias: true,
     alpha: true
@@ -66,16 +22,11 @@ renderer.domElement.style.top = '0px'
 renderer.domElement.style.left = '0px'
 document.body.appendChild( renderer.domElement );
 
-// array of functions for the rendering loop
 var onRenderFcts= [];
-// init scene and camera
+
 var scene	= new THREE.Scene();
-//////////////////////////////////////////////////////////////////////////////////
-//		Initialize a basic camera
-//////////////////////////////////////////////////////////////////////////////////
-// Create a camera
 var camera = new THREE.PerspectiveCamera(60, document.body.offsetWidth / document.body.offset, 1, 10);
-// camera.position.set( );
+
 camera.position.z = 3;
 scene.add(camera);
 const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
@@ -111,24 +62,13 @@ params.Single = function () {
     fire.addSource( 0.5, 0.1, 0.1, 1.0, 0.0, 1.0 );
 };
 
-
-////////////////////////////////////////////////////////////////////////////////
-//          handle arToolkitSource
-////////////////////////////////////////////////////////////////////////////////
 var arToolkitSource = new THREEx.ArToolkitSource({
-    // to read from the webcam
     sourceType : 'webcam',
-    // // to read from an image
-    // sourceType : 'image',
-    // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/images/img.jpg',
-    // to read from a video
-    // sourceType : 'video',
-    // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
 })
 arToolkitSource.init(function onReady(){
     onResize()
 })
-// handle resize
+
 window.addEventListener('resize', function(){
     onResize()
 })
@@ -140,22 +80,21 @@ function onResize(){
     }
 }
 
-// create atToolkitContext
 var arToolkitContext = new THREEx.ArToolkitContext({
     cameraParametersUrl: THREEx.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
     detectionMode: 'mono',
 })
-// initialize it
+
 arToolkitContext.init(function onCompleted(){
-    // copy projection matrix to camera
     camera.projectionMatrix.copy( arToolkitContext.getProjectionMatrix() );
 })
-// update artoolkit on every frame
+
 onRenderFcts.push(function(){
-    if( arToolkitSource.ready === false )	return
-    arToolkitContext.update( arToolkitSource.domElement )
-    // update scene.visible if the marker is seen
-    scene.visible = camera.visible
+    if( arToolkitSource.ready === false ) {
+        return;
+    }
+    arToolkitContext.update( arToolkitSource.domElement );
+    scene.visible = camera.visible;
 })
 const makerRoot = new THREE.Group();
 scene.add(makerRoot);
@@ -163,38 +102,17 @@ fire.position.set(0,0,0);
 
 params.Single();
 updateAll();
-// init controls for camera
+
 var markerControls = new THREEx.ArMarkerControls(arToolkitContext, makerRoot, {
     type : 'pattern',
-    patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
-    // patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
-    // as we controls the camera, set changeMatrixMode: 'cameraTransformMatrix'
-    // changeMatrixMode: 'cameraTransformMatrix'
+    patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro'
 })
-// as we do changeMatrixMode: 'cameraTransformMatrix', start with invisible scene
+
 scene.visible = false
 
-// add a torus knot
-var geometry	= new THREE.CubeGeometry(2,1,1);
-var material	= new THREE.MeshNormalMaterial({
-    transparent : true,
-    opacity: 0.5,
-    // side: THREE.DoubleSide
-});
-var mesh = new THREE.Mesh( geometry, material );
-mesh.position.set(0,0,0);
-// mesh.scale.set(0.1,0.1,0.1);
-scene.add( mesh );
 makerRoot.add( fire );
-// const project = mesh.position.project(camera)
-// console.log(window.innerWidth / 2 * (+project.x + 1.0), window.innerHeight / 2 * (-project.y + 1.0) )
+fire.visible = false;
 
-// mesh.position.set(-2.4226338863372803, -0.19854499399662018, -7.350611209869385)
-// var geometry	= new THREE.TorusKnotGeometry(0.3,0.1,64,16);
-// var material	= new THREE.MeshNormalMaterial();
-// var mesh	= new THREE.Mesh( geometry, material );
-// mesh.position.y	= 0.5
-// makerRoot.add( mesh );
 let loader = new OBJLoader();
 loader.load('../dist/Sword.obj',
 (group)=>{
@@ -203,43 +121,67 @@ loader.load('../dist/Sword.obj',
     group.scale.set(0.03,0.03,0.03);
     makerRoot.add(group);
 });
-let total = 0;
-onRenderFcts.push(function(delta){
-    total += delta;
-    console.log(total);
-    if(total > 1) {
-        console.log(total);
-        mesh.visible = false;
-    }
-    if(total > 1.5) {
-        mesh.visible = true;
-        total = 0;
-    }
-})
-// render the scene
+
 onRenderFcts.push(function(){
     renderer.render( scene, camera );
 })
-// run the rendering loop
+
 var lastTimeMsec= null
 requestAnimationFrame(function animate(nowMsec){
-    // keep looping
     requestAnimationFrame( animate );
-
-    // measure time
     lastTimeMsec	= lastTimeMsec || nowMsec-1000/60
     var deltaMsec	= Math.min(200, nowMsec - lastTimeMsec)
     lastTimeMsec	= nowMsec
-    // call each update function
     onRenderFcts.forEach(function(onRenderFct){
         onRenderFct(deltaMsec/10000, nowMsec/10000)
     })
 })
 
-// setTimeout(start,100);
+setTimeout(start,1000);
 
+export function startVideo(video) {
+    video.width = video.width || 640;
+    video.height = video.height || video.width * (3 / 4)
+  
+    return new Promise(function (resolve, reject) {
+      navigator.mediaDevices
+        .getUserMedia({
+          audio: false,
+          video: {
+            facingMode: "environment"
+          }
+        })
+        .then(stream => {
+          window.localStream = stream;
+          video.srcObject = stream
+          video.onloadedmetadata = () => {
+            video.play()
+            resolve(true)
+          }
+        }).catch(function (err) {
+          resolve(false)
+        });
+    });
+  
+  }
+async function start() {
+    console.log('detect-hand start');
+    const model = await handTrack.load(modelParams);
+    const video = document.getElementById("arjs-video");    
+    const status = await startVideo(video)
+    if(status){
+        runDetect(model,video, 0);
+    }
+}
+async function runDetect(model, video, prevCount) {
+    const predictions = await model.detect(video);
+    const count = predictions.length > 0 ? prevCount + 1 : prevCount;
+    if(count > 6) {
+        fire.visible = true;
+    }
+    setTimeout(()=>{runDetect(model, video, count)}, 500);
+}
 function updateAll() {
-
     updateColor1( params.color1 );
     updateColor2( params.color2 );
     updateColor3( params.color3 );
