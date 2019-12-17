@@ -114,7 +114,7 @@ makerRoot.add( fire );
 fire.visible = false;
 
 let loader = new OBJLoader();
-loader.load('../dist/Sword.obj',
+loader.load('./Sword.obj',
 (group)=>{
     group.name = "sword"
     group.position.set(0,0,0);
