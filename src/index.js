@@ -195,7 +195,7 @@ scene.add( mesh );
 // mesh.position.y	= 0.5
 // makerRoot.add( mesh );
 let loader = new OBJLoader();
-loader.load('../assets/Sword.obj',
+loader.load('../dist/Sword.obj',
 (group)=>{
     group.name = "sword"
     group.position.set(0,0,0);
