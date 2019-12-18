@@ -1,6 +1,5 @@
 const path = require('path');
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const WorkerLoader = require("worker-plugin");
 
 module.exports = ( env, argv ) => ({
   mode: "development",
