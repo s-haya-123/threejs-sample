@@ -2,7 +2,7 @@ import * as handTrack from "handtrackjs";
 import * as THREE from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { Fire } from "three/examples/jsm/objects/Fire.js";
-
+import { start } from './trakinghand.js';
 const modelParams = {
   flipHorizontal: true, // flip e.g for video
   maxNumBoxes: 1, // maximum number of boxes to detect
@@ -147,53 +147,6 @@ requestAnimationFrame(function animate(nowMsec) {
 
 setTimeout(start, 2000);
 
-export function startVideo(video) {
-  video.width = video.width || 640;
-  video.height = video.height || video.width * (3 / 4);
-
-  return new Promise(function(resolve, reject) {
-    navigator.mediaDevices
-      .getUserMedia({
-        audio: false,
-        video: {
-          facingMode: "environment"
-        }
-      })
-      .then(stream => {
-        //   window.localStream = stream;
-        //   video.srcObject = stream
-        resolve(true);
-        video.onloadedmetadata = () => {
-          // video.play()
-          resolve(true);
-        };
-      })
-      .catch(function(err) {
-        resolve(false);
-      });
-  });
-}
-async function start() {
-  console.log("detect-hand start");
-  const model = await handTrack.load(modelParams);
-  const video = document.getElementById("arjs-video");
-  const status = await startVideo(video);
-  if (status) {
-    runDetect(model, video, 0);
-  }
-}
-async function runDetect(model, video, prevCount) {
-  const predictions = await model.detect(video);
-  console.log(predictions);
-  const count = predictions.length > 0 ? prevCount + 1 : prevCount;
-  if (count > 4) {
-    mesh.visible = false;
-    fire.visible = true;
-  }
-  setTimeout(() => {
-    runDetect(model, video, count);
-  }, 500);
-}
 function updateAll() {
   updateColor1(params.color1);
   updateColor2(params.color2);

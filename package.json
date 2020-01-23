@@ -9,9 +9,12 @@
     "start:device": "webpack-dev-server --inline --host 0.0.0.0"
   },
   "dependencies": {
-    "handtrackjs": "^0.0.13"
+    "handtrackjs": "^0.0.13",
+    "worker-loader": "^2.0.0",
+    "worker-plugin": "^3.2.0"
   },
   "devDependencies": {
+    "html-webpack-plugin": "^3.2.0",
     "prettier": "^1.19.1",
     "three": "^0.111.0",
     "webpack": "^4.40.2",
