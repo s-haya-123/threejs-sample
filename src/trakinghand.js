@@ -8,46 +8,41 @@ const modelParams = {
   };
 
 export function startVideo(video) {
-    video.width = video.width || 640;
-    video.height = video.height || video.width * (3 / 4);
+    console.log(video.width,video.height);
+    video.width = video.width || document.body.offsetWidth;
+    video.height = video.height || document.body.offsetHeight;
   
     return new Promise(function(resolve, reject) {
-      navigator.mediaDevices
-        .getUserMedia({
-          audio: false,
-          video: {
-            facingMode: "environment"
-          }
-        })
-        .then(stream => {
-          resolve(true);
-          video.onloadedmetadata = () => {
-            resolve(true);
-          };
-        })
-        .catch(function(err) {
-          resolve(false);
-        });
+        resolve(true);
+    //   navigator.mediaDevices
+    //     .getUserMedia({
+    //       audio: false,
+    //       video: {
+    //         facingMode: "environment"
+    //       }
+    //     })
+    //     .then(stream => {
+    //       resolve(true);
+    //       video.onloadedmetadata = () => {
+    //         resolve(true);
+    //       };
+    //     })
+    //     .catch(function(err) {
+    //       resolve(false);
+    //     });
     });
   }
+  let model;
+  let video;
   export async function start() {
     console.log("detect-hand start");
-    const model = await handTrack.load(modelParams);
-    const video = document.getElementById("arjs-video");
+    model = await handTrack.load(modelParams);
+    video = document.getElementById("arjs-video");
     const status = await startVideo(video);
-    if (status) {
-      runDetect(model, video, 0);
-    }
+    return {model, video};
   }
-  async function runDetect(model, video, prevCount) {
+  export async function runDetect() {
     const predictions = await model.detect(video);
-    console.log(predictions);
-    const count = predictions.length > 0 ? prevCount + 1 : prevCount;
-    if (count > 4) {
-      mesh.visible = false;
-      fire.visible = true;
-    }
-    setTimeout(() => {
-      runDetect(model, video, count);
-    }, 500);
+    console.log(model.getFPS())
+    return predictions;
   }

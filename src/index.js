@@ -2,20 +2,21 @@ import * as handTrack from "handtrackjs";
 import * as THREE from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { Fire } from "three/examples/jsm/objects/Fire.js";
-import { start } from './trakinghand.js';
-const modelParams = {
-  flipHorizontal: true, // flip e.g for video
-  maxNumBoxes: 1, // maximum number of boxes to detect
-  iouThreshold: 0.5, // ioU threshold for non-max suppression
-  scoreThreshold: 0.6
-};
+import { start,runDetect } from './trakinghand.js';
 
+
+const width = window.innerWidth;
+const height = window.innerHeight;
+
+// canvas 要素の参照を取得する
+const canvas = document.querySelector('#myCanvas');
 let renderer = new THREE.WebGLRenderer({
   antialias: true,
-  alpha: true
+  alpha: true,
+  canvas: canvas
 });
 renderer.setClearColor(new THREE.Color("lightgrey"), 0);
-renderer.setSize(640, 480);
+renderer.setSize(document.body.offsetWidth, document.body.offsetHeight);
 renderer.domElement.style.position = "absolute";
 renderer.domElement.style.top = "0px";
 renderer.domElement.style.left = "0px";
@@ -24,12 +25,15 @@ document.body.appendChild(renderer.domElement);
 let onRenderFcts = [];
 
 let scene = new THREE.Scene();
-let camera = new THREE.PerspectiveCamera(
-  60,
-  document.body.offsetWidth / document.body.offset,
-  1,
-  10
-);
+// let camera = new THREE.PerspectiveCamera(
+//   60,
+//   document.body.offsetWidth / document.body.offset,
+//   1,
+//   10
+// );
+
+const camera = new THREE.PerspectiveCamera(45, width / height);
+        // const camera = new THREE.PerspectiveCamera(45, document.body.offsetWidth / document.body.offset);
 
 camera.position.z = 3;
 scene.add(camera);
@@ -37,33 +41,6 @@ const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
 light.position.set(0, 1, 0);
 scene.add(light);
 
-let plane = new THREE.PlaneBufferGeometry(20, 20);
-let fire = new Fire(plane, {
-  textureWidth: 512,
-  textureHeight: 512,
-  debug: false
-});
-let params = {
-  color1: "#ffffff",
-  color2: "#ffa000",
-  color3: "#000000",
-  colorBias: 0.7,
-  burnRate: 2.04,
-  diffuse: 1.07,
-  viscosity: 0,
-  expansion: 1,
-  swirl: 50.0,
-  drag: 0.35,
-  airSpeed: 12.0,
-  windX: 0.0,
-  windY: 0.75,
-  speed: 442.0,
-  massConservation: false
-};
-params.Single = function() {
-  fire.clearSources();
-  fire.addSource(0.5, 0.1, 0.1, 1.0, 0.0, 1.0);
-};
 
 let arToolkitSource = new THREEx.ArToolkitSource({
   sourceType: "webcam"
@@ -102,38 +79,54 @@ onRenderFcts.push(function() {
 });
 const makerRoot = new THREE.Group();
 scene.add(makerRoot);
-fire.position.set(0, 0, 0);
-fire.scale.set(0.5, 0.5, 0.5);
-
-params.Single();
-updateAll();
 
 let markerControls = new THREEx.ArMarkerControls(arToolkitContext, makerRoot, {
   type: "pattern",
   patternUrl: THREEx.ArToolkitContext.baseURL + "../data/data/patt.hiro"
 });
-const geometry = new THREE.CubeGeometry(2.5, 2.5, 2.5);
+const geometry = new THREE.CubeGeometry(1, 1, 1);
 const material = new THREE.MeshNormalMaterial();
-const mesh = new THREE.Mesh(geometry, material);
-scene.visible = false;
-
-fire.visible = false;
+// const mesh = new THREE.Mesh(geometry, material);
+const mesh2 = new THREE.Mesh(geometry, material);
+mesh2.position.z = -1;
+scene.visible = true;
 
 let loader = new OBJLoader();
-loader.load("Sword.obj", group => {
+let sword;
+loader.load("Bird.obj", group => {
+  sword = group;
   group.name = "sword";
-  group.position.set(-3, 6, 0);
-  group.scale.set(0.03, 0.03, 0.03);
-  group.rotation.z += 0.5;
-  makerRoot.add(mesh);
-  makerRoot.add(group);
-  makerRoot.add(fire);
+  group.position.set(0, 0, 0);
+  group.scale.set(0.2, 0.2, 0.2);
+  // group.rotation.z += 0.5;
+  group.rotation.set(30,0,0.2);
+  scene.add(group);
 });
 
+// mesh.position.set(0,0,0);
+mesh2.position.set(0,-1,0);
+// scene.add( mesh );
+scene.add( mesh2 );
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+mouse.x = 0;
+mouse.y = 0;
 onRenderFcts.push(function() {
+  raycaster.setFromCamera( mouse, camera );
+
+	// calculate objects intersecting the picking ray
+  const intersects = raycaster.intersectObjects( scene.children );
+	for ( let i = 0; i < intersects.length; i++ ) {
+    // intersects[ i ].object.material.color.set( 0xff0000 );
+    sword.rotation.x += 0.1
+    sword.rotation.y += 0.1
+	}
   renderer.render(scene, camera);
 });
-
+// onRenderFcts.push(()=>{
+//   mesh2.rotation.x += 0.01;
+//   mesh2.rotation.y += 0.01;
+// })
 let lastTimeMsec = null;
 requestAnimationFrame(function animate(nowMsec) {
   requestAnimationFrame(animate);
@@ -145,81 +138,65 @@ requestAnimationFrame(function animate(nowMsec) {
   });
 });
 
-setTimeout(start, 2000);
+setTimeout(async ()=>{
+  await start();
+  predict();
+  timer(500);
+}, 2000);
 
-function updateAll() {
-  updateColor1(params.color1);
-  updateColor2(params.color2);
-  updateColor3(params.color3);
-  updateColorBias(params.colorBias);
-  updateBurnRate(params.burnRate);
-  updateDiffuse(params.diffuse);
-  updateViscosity(params.viscosity);
-  updateExpansion(params.expansion);
-  updateSwirl(params.swirl);
-  updateDrag(params.drag);
-  updateAirSpeed(params.airSpeed);
-  updateWindX(params.windX);
-  updateWindY(params.windY);
-  updateSpeed(params.speed);
-  updateMassConservation(params.massConservation);
+function timer(msec) {
+  predict();
+  setTimeout(()=>{
+    timer(msec);
+  },msec);
 }
-function updateColor1(value) {
-  fire.color1.set(value);
+async function predict() {
+  const predictions = await runDetect();
+  // console.log(predictions);
+  trackingHandObject(sword,predictions);
+  setRaycastVec(mouse,predictions);
 }
+function trackingHandObject(obj,predictions) {
+  if (predictions.length) {
+    const [x,y,width, height] = predictions[0].bbox;
+    obj.position.x = 1 - ( x / document.body.offsetWidth) * 2;
+    obj.position.y = 1 - ( y / document.body.offsetHeight ) * 2;
+    // console.log(obj.position);
+  }
+}
+function setRaycastVec(mouse, predictions) {
+  if (predictions.length) {
+    const [x,y] = predictions[0].bbox;
+    mouse.x = 1 - ( x / document.body.offsetWidth) * 2;
+    mouse.y = 1 - ( y / document.body.offsetHeight ) * 2;
+    // console.log(mouse);
+  }
+}
+// document.addEventListener('mousemove', handleMouseMove);
 
-function updateColor2(value) {
-  fire.color2.set(value);
-}
+//         // マウスを動かしたときのイベント
+//         function handleMouseMove(event) {
+//           // canvas要素上のXY座標
+//           const x = event.clientX;
+//           const y = event.clientY;
+//           console.log(x,y);
+//           // canvas要素の幅・高さ
+//           const w = window.innerWidth;
+//           const h = window.innerHeight;
+//           console.log(w,h)
+//           // -1〜+1の範囲で現在のマウス座標を登録する
+//           mouse.x = (x / w) * 2 - 1;
+//           mouse.y = -(y / h) * 2 + 1;
+//           console.log(mouse);
+//         }
+// function onMouseMove( event ) {
 
-function updateColor3(value) {
-  fire.color3.set(value);
-}
+// 	// calculate mouse position in normalized device coordinates
+//   // (-1 to +1) for both components
+// 	mouse.x = ( event.clientX / document.body.offsetWidth ) * 2 - 1;
+// 	mouse.y = - ( event.clientY / document.body.offsetHeight ) * 2 + 1;
+//   console.log('mouse', mouse);
 
-function updateColorBias(value) {
-  fire.colorBias = value;
-}
+// }
+// window.addEventListener( 'mousemove', onMouseMove, false );
 
-function updateBurnRate(value) {
-  fire.burnRate = value;
-}
-
-function updateDiffuse(value) {
-  fire.diffuse = value;
-}
-
-function updateViscosity(value) {
-  fire.viscosity = value;
-}
-
-function updateExpansion(value) {
-  fire.expansion = value;
-}
-
-function updateSwirl(value) {
-  fire.swirl = value;
-}
-
-function updateDrag(value) {
-  fire.drag = value;
-}
-
-function updateAirSpeed(value) {
-  fire.airSpeed = value;
-}
-
-function updateWindX(value) {
-  fire.windVector.x = value;
-}
-
-function updateWindY(value) {
-  fire.windVector.y = value;
-}
-
-function updateSpeed(value) {
-  fire.speed = value;
-}
-
-function updateMassConservation(value) {
-  fire.massConservation = value;
-}
